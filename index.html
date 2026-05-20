@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الضباط</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a1420;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e0e0e0;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* منع النسخ */
+        .container, .question-box, p, h1, h2, h3, span, div {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            -webkit-touch-callout: none;
+        }
+
+        /* نافذة الرسائل المنبثقة */
+        .message-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .message-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-box {
+            background: #1a2634;
+            border: 1px solid #3a4a5a;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-overlay.show .message-box {
+            transform: scale(1);
+        }
+
+        .message-box.error {
+            border-right: 5px solid #8b3a3a;
+        }
+
+        .message-box.warning {
+            border-right: 5px solid #b87a3a;
+        }
+
+        .message-box.success {
+            border-right: 5px solid #3a8b5a;
+        }
+
+        .message-box.info {
+            border-right: 5px solid #3a6a8b;
+        }
+
+        .message-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .message-content {
+            color: #b0c0d0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .message-button {
+            background: #2a3a4a;
+            color: #e0e0e0;
+            border: 1px solid #4a5a6a;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 100px;
+        }
+
+        .message-button:hover {
+            background: #3a4a5a;
+        }
+
+        .message-button.error {
+            background: #8b3a3a;
+            border-color: #b05a5a;
+        }
+
+        .message-button.error:hover {
+            background: #9b4a4a;
+        }
+
+        .start-screen, .quiz-screen, .result-screen, .blocked-screen {
+            background: #0f1a28;
+            border: 1px solid #2a3a4a;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        h1, h2 {
+            color: #b0c4de;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0b0c0;
+            font-weight: 400;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            background: #1a2634;
+            border: 1px solid #3a4a5a;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #5a6a7a;
+        }
+
+        button {
+            background: #1e2e3e;
+            color: #c0d0e0;
+            border: 1px solid #3a4a5a;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #2a3a4a;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #3a4a5a;
+        }
+
+        .admin-section h3 {
+            color: #a0b0c0;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .small-btn {
+            background: #2a3a4a;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .timer {
+            background: #1a2634;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid #3a4a5a;
+            color: #c0d0e0;
+        }
+
+        .timer.warning {
+            color: #dba56a;
+            border-color: #b87a3a;
+        }
+
+        .timer.danger {
+            color: #d86a6a;
+            border-color: #8b3a3a;
+        }
+
+        .question-text {
+            font-size: 20px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            padding: 20px;
+            background: #1a2634;
+            border-radius: 10px;
+            border-right: 4px solid #5a6a7a;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: #1a2634;
+            border: 1px solid #3a4a5a;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            background: #2a3644;
+        }
+
+        .option.selected {
+            background: #2a4050;
+            border-color: #6a8a9a;
+        }
+
+        .written-answer {
+            width: 100%;
+            padding: 15px;
+            background: #1a2634;
+            border: 1px solid #3a4a5a;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            min-height: 120px;
+            resize: vertical;
+            margin-top: 20px;
+        }
+
+        .written-answer:focus {
+            outline: none;
+            border-color: #5a6a7a;
+        }
+
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #a0b0c0;
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            margin-top: 0;
+        }
+
+        .skip-btn {
+            background: #2a2a3a;
+            border-color: #5a4a4a;
+        }
+
+        .skip-btn:hover {
+            background: #3a3a4a;
+        }
+
+        .result-box {
+            background: #1a2634;
+            border: 1px solid #3a4a5a;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 48px;
+            color: #b0c4de;
+            margin: 20px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .blocked-message {
+            text-align: center;
+            color: #a0b0c0;
+            line-height: 2;
+        }
+
+        .blocked-message p {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .unlock-hint {
+            color: #5a7a8a;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- نافذة الرسائل المنبثقة -->
+    <div id="messageOverlay" class="message-overlay">
+        <div id="messageBox" class="message-box">
+            <div id="messageIcon" class="message-icon"></div>
+            <div id="messageTitle" class="message-title"></div>
+            <div id="messageContent" class="message-content"></div>
+            <button id="messageButton" class="message-button" onclick="hideMessage()">حسناً</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- شاشة البداية -->
+        <div id="startScreen" class="start-screen">
+            <h2>اختبار القيادة العسكرية</h2>
+            <div class="input-group">
+                <label>الاسم:</label>
+                <input type="text" id="username" placeholder="أدخل اسمك" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>الكود:</label>
+                <input type="text" id="usercode" placeholder="أدخل كودك" autocomplete="off">
+            </div>
+            <button onclick="startQuiz()">بدء الاختبار</button>
+        </div>
+
+        <!-- شاشة المنع (للي أدوا الاختبار قبل كذا) -->
+        <div id="blockedScreen" class="blocked-screen hidden">
+            <h2>تم أداء الاختبار مسبقاً</h2>
+            <div class="blocked-message">
+                <p> لا يمكنك إعادة الاختبار</p>
+                <p>لقد قمت بأداء هذا الاختبار من قبل ولا يسمح بإعادته.</p>
+                <p>إذا كان هناك خطأ، يرجى التواصل مع المشرف.</p>
+            </div>
+            
+            <!-- قسم المشرف - يظهر فقط للمشرفين -->
+            <div class="admin-section">
+                <h3> دخول المشرف</h3>
+                <div class="input-group">
+                    <label>كود فك الحظر:</label>
+                    <input type="password" id="unlockCode" placeholder="أدخل كود المشرف" autocomplete="off">
+                </div>
+                <button onclick="unlockQuiz()" class="small-btn">فتح الاختبار</button>
+                <div class="unlock-hint"></div>
+            </div>
+        </div>
+
+        <!-- شاشة الاختبار -->
+        <div id="quizScreen" class="quiz-screen hidden">
+            <div class="progress" id="progress">السؤال <span id="currentQ">1</span> من <span id="totalQ">20</span></div>
+            <div class="timer" id="timer">00:00</div>
+            <div class="question-text" id="questionText"></div>
+            <div id="optionsContainer" class="options"></div>
+            <textarea id="writtenAnswer" class="written-answer hidden" placeholder="اكتب إجابتك هنا..."></textarea>
+            <div class="button-group">
+                <button onclick="nextQuestion()" id="nextBtn" style="flex: 2;">التالي</button>
+                <button onclick="skipQuestion()" class="skip-btn" id="skipBtn" style="flex: 1;"> تسكيب</button>
+            </div>
+        </div>
+
+        <!-- شاشة النتائج -->
+        <div id="resultScreen" class="result-screen hidden">
+            <h2>النتيجة النهائية</h2>
+            <div class="result-box">
+                <div style="font-size: 18px; color: #a0b0c0;">درجتك</div>
+                <div class="final-score" id="score"></div>
+                <div style="color: #808080; margin-top: 20px;">تم إرسال النتائج للمشرف</div>
+            </div>
+            <button onclick="blockRestart()">خروج</button>
+        </div>
+    </div>
+
+    <script>
+        // منع النسخ
+        document.addEventListener('copy', (e) => e.preventDefault());
+        document.addEventListener('cut', (e) => e.preventDefault());
+        document.addEventListener('paste', (e) => e.preventDefault());
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // كود فك الحظر السري
+        const UNLOCK_CODE = 'unlock2024';
+
+        // التحقق من أداء الاختبار مسبقاً
+        function checkQuizStatus() {
+            if (localStorage.getItem('quizTaken')) {
+                document.getElementById('startScreen').classList.add('hidden');
+                document.getElementById('blockedScreen').classList.remove('hidden');
+                document.getElementById('quizScreen').classList.add('hidden');
+                document.getElementById('resultScreen').classList.add('hidden');
+            } else {
+                document.getElementById('startScreen').classList.remove('hidden');
+                document.getElementById('blockedScreen').classList.add('hidden');
+            }
+        }
+
+        // دالة فك الحظر
+        function unlockQuiz() {
+            const unlockCode = document.getElementById('unlockCode').value.trim();
+            
+            if (unlockCode === UNLOCK_CODE) {
+                // مسح حالة الاختبار من localStorage
+                localStorage.removeItem('quizTaken');
+                
+                // إظهار رسالة نجاح
+                showMessage('success', 'تم الفتح', 'تم فتح الاختبار بنجاح. يمكن للمستخدم البدء الآن.');
+                
+                // العودة لشاشة البداية
+                setTimeout(() => {
+                    document.getElementById('blockedScreen').classList.add('hidden');
+                    document.getElementById('startScreen').classList.remove('hidden');
+                }, 1500);
+            } else {
+                showMessage('error', 'خطأ', 'كود فك الحظر غير صحيح');
+            }
+        }
+
+        // تنفيذ التحقق عند تحميل الصفحة
+        checkQuizStatus();
+
+        // بيانات الأسئلة
+        const questions = [
+            // أسئلة الخيارات (1-10)
+            { type: 'multiple', text: '1. أثناء مهمة قتالية انقطع الاتصال مع القيادة، ما القرار الصحيح للضابط؟', options: ['A) إيقاف العملية فورًا', 'B) متابعة المهمة وفق نية القائد والخطة الأساسية', 'C) انتظار التعليمات مهما كان الوضع'], correct: 'B' },
+            { type: 'multiple', text: '2. إذا كان تنفيذ الأمر سيؤدي لخسائر كبيرة غير ضرورية، ماذا يفعل الضابط؟', options: ['A) تنفيذ الأمر حرفيًا', 'B) تعديل التنفيذ بما يحقق الهدف ويقلل الخسائر', 'C) رفض تنفيذ الأمر'], correct: 'B' },
+            { type: 'multiple', text: '3. أيهما أخطر على الوحدة العسكرية؟', options: ['A) نقص الذخيرة', 'B) ضعف القيادة', 'C) قلة العدد'], correct: 'B' },
+            { type: 'multiple', text: '4. إذا فقدت عنصر المفاجأة قبل الهجوم مباشرة، ما القرار الأفضل؟', options: ['A) الاستمرار بالهجوم فورًا', 'B) إعادة التقييم وربما تغيير الخطة', 'C) الانسحاب الكامل'], correct: 'B' },
+            { type: 'multiple', text: '5. ما أهم عنصر يحدد نجاح الكمين العسكري؟', options: ['A) عدد الجنود', 'B) اختيار الموقع والتوقيت', 'C) نوع السلاح'], correct: 'B' },
+            { type: 'multiple', text: '6. إذا تعارضت السرعة مع الأمان في تنفيذ المهمة، ماذا يختار القائد؟', options: ['A) السرعة دائمًا', 'B) الأمان دائمًا', 'C) التوازن حسب طبيعة المهمة'], correct: 'C' },
+            { type: 'multiple', text: '7. ما أخطر خطأ يمكن أن يقع فيه القائد أثناء المعركة؟', options: ['A) التأخر في القرار', 'B) اتخاذ قرار خاطئ', 'C) عدم اتخاذ قرار'], correct: 'C' },
+            { type: 'multiple', text: '8. إذا تساوت قوة العدو مع قواتك تمامًا، ما العامل الذي يرجح النصر؟', options: ['A) الموقع الأرضي', 'B) القيادة والتخطيط', 'C) الحظ'], correct: 'B' },
+            { type: 'multiple', text: '9. في القتال، ما الذي يسبق القوة النارية في الأهمية؟', options: ['A) المفاجأة والمناورة', 'B) كثرة الجنود', 'C) نوع السلاح'], correct: 'A' },
+            { type: 'multiple', text: '10. ما أخطر شيء يحدث عند كسر التسلسل القيادي؟', options: ['A) تأخر الأوامر', 'B) فقدان الانضباط والسيطرة', 'C) زيادة المسؤولية'], correct: 'B' },
+            // أسئلة مقالية (11-20)
+            { type: 'written', text: '11. لماذا يعتبر اتخاذ القرار السريع أهم من القرار المثالي في القتال؟', correct: 'لأن التأخير قد يؤدي إلى فقدان المبادرة وتدهور الموقف.' },
+            { type: 'written', text: '12. ما أخطر تهديد داخلي يمكن أن يواجه الوحدة العسكرية؟', correct: 'انهيار الانضباط أو فقدان الثقة بالقيادة.' },
+            { type: 'written', text: '13. ما أهم مبدأ في القيادة العسكرية أثناء الأزمات؟', correct: 'الحفاظ على الهدوء والسيطرة واتخاذ القرار.' },
+            { type: 'written', text: '14. لماذا قد يفشل جيش قوي أمام قوة أصغر؟', correct: 'سوء القيادة أو ضعف التخطيط أو فقدان المعنويات.' },
+            { type: 'written', text: '15. ما الهدف الحقيقي من التدريب العسكري القاسي؟', correct: 'تجهيز الجنود للتصرف الصحيح تحت الضغط.' },
+            { type: 'written', text: '16. ما أول شيء يجب أن يحافظ عليه الضابط أثناء المعركة؟', correct: 'السيطرة على وحدته.' },
+            { type: 'written', text: '17. ما الفرق بين الشجاعة والتهور في القيادة؟', correct: 'الشجاعة قرار محسوب، والتهور تصرف بلا تقدير للمخاطر.' },
+            { type: 'written', text: '18. لماذا تعتبر المعلومات أهم من القوة أحيانًا؟', correct: 'لأن المعرفة بالعدو تعطي أفضلية في القرار.' },
+            { type: 'written', text: '19. ما أهم مسؤولية للضابط تجاه جنوده؟', correct: 'قيادتهم وحمايتهم وتحقيق المهمة.' },
+            { type: 'written', text: '20. ما أخطر نتيجة لضعف التواصل داخل الوحدة العسكرية؟', correct: 'الفوضى وفشل المهمة.' }
+        ];
+
+        // متغيرات الاختبار
+        let currentUser = '';
+        let currentCode = '';
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let timerInterval;
+        let timeLeft = 0;
+        let quizActive = true;
+        const webhookUrl = 'https://discord.com/api/webhooks/1483696105492320337/wHGgeTnEqHuUGXp5xT-8YkZqNNDZnye7IwSK8kvHb86ExJ4WVbm1QIthAYTU9W9Kn3d7';
+
+        // دالة عرض الرسائل
+        function showMessage(type, title, content, buttonText = 'حسناً') {
+            const overlay = document.getElementById('messageOverlay');
+            const box = document.getElementById('messageBox');
+            const icon = document.getElementById('messageIcon');
+            const titleEl = document.getElementById('messageTitle');
+            const contentEl = document.getElementById('messageContent');
+            const button = document.getElementById('messageButton');
+
+            box.className = 'message-box ' + type;
+            
+            switch(type) {
+                case 'error':
+                    icon.innerHTML = '';
+                    button.className = 'message-button error';
+                    break;
+                case 'warning':
+                    icon.innerHTML = '';
+                    button.className = 'message-button';
+                    break;
+                case 'success':
+                    icon.innerHTML = '';
+                    button.className = 'message-button';
+                    break;
+                case 'info':
+                    icon.innerHTML = '';
+                    button.className = 'message-button';
+                    break;
+            }
+
+            titleEl.textContent = title;
+            contentEl.textContent = content;
+            button.textContent = buttonText;
+
+            overlay.classList.add('show');
+        }
+
+        function hideMessage() {
+            document.getElementById('messageOverlay').classList.remove('show');
+        }
+
+        function startQuiz() {
+            const username = document.getElementById('username').value.trim();
+            const usercode = document.getElementById('usercode').value.trim();
+            
+            if (!username || !usercode) {
+                showMessage('error', 'خطأ', 'الرجاء إدخال الاسم والكود');
+                return;
+            }
+
+            localStorage.setItem('quizTaken', 'true');
+
+            currentUser = username;
+            currentCode = usercode;
+            currentQuestionIndex = 0;
+            userAnswers = new Array(questions.length).fill(null);
+            quizActive = true;
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            document.getElementById('totalQ').textContent = questions.length;
+            
+            showMessage('info', 'بدأ الاختبار', 'تم بدء الاختبار بنجاح. انتبه للوقت المحدد لكل سؤال.');
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (!quizActive) return;
+            
+            clearInterval(timerInterval);
+            
+            const q = questions[currentQuestionIndex];
+            document.getElementById('currentQ').textContent = currentQuestionIndex + 1;
+            document.getElementById('questionText').textContent = q.text;
+
+            if (q.type === 'multiple') {
+                timeLeft = Math.floor(Math.random() * (25 - 10 + 1)) + 10;
+                document.getElementById('optionsContainer').classList.remove('hidden');
+                document.getElementById('writtenAnswer').classList.add('hidden');
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, idx) => {
+                    const isSelected = userAnswers[currentQuestionIndex] === String.fromCharCode(65 + idx);
+                    optionsHtml += `<div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption('${String.fromCharCode(65 + idx)}')">${opt}</div>`;
+                });
+                document.getElementById('optionsContainer').innerHTML = optionsHtml;
+            } else {
+                timeLeft = Math.floor(Math.random() * (120 - 60 + 1)) + 60;
+                document.getElementById('optionsContainer').classList.add('hidden');
+                document.getElementById('writtenAnswer').classList.remove('hidden');
+                document.getElementById('writtenAnswer').value = userAnswers[currentQuestionIndex] || '';
+            }
+
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+                if (timeLeft <= 5) {
+                    document.getElementById('timer').classList.remove('warning');
+                    document.getElementById('timer').classList.add('danger');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function handleTimeout() {
+            if (!quizActive) return;
+            
+            showMessage('warning', 'انتهى الوقت', 'انتهى الوقت المحدد للسؤال. تم تسجيل إجابة خاطئة.');
+            
+            userAnswers[currentQuestionIndex] = '';
+            moveToNextQuestion();
+        }
+
+        function selectOption(option) {
+            if (!quizActive) return;
+            userAnswers[currentQuestionIndex] = option;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function skipQuestion() {
+            if (!quizActive) return;
+            
+            showMessage('warning', 'تسكيب السؤال', 'تم تسكيب السؤال وتسجيل إجابة خاطئة.');
+            
+            userAnswers[currentQuestionIndex] = '';
+            clearInterval(timerInterval);
+            moveToNextQuestion();
+        }
+
+        function nextQuestion() {
+            if (!quizActive) return;
+            
+            const q = questions[currentQuestionIndex];
+            
+            if (q.type === 'written') {
+                const answer = document.getElementById('writtenAnswer').value.trim();
+                userAnswers[currentQuestionIndex] = answer || '';
+                
+                if (!answer) {
+                    showMessage('warning', 'تحذير', 'لم تقم بكتابة إجابة. سيتم تسجيل إجابة خاطئة.');
+                }
+            } else {
+                if (!userAnswers[currentQuestionIndex]) {
+                    showMessage('error', 'خطأ', 'الرجاء اختيار إجابة');
+                    return;
+                }
+            }
+            
+            clearInterval(timerInterval);
+            moveToNextQuestion();
+        }
+
+        function moveToNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            quizActive = false;
+            clearInterval(timerInterval);
+            
+            let correctCount = 0;
+            let wrongAnswers = [];
+            
+            questions.forEach((q, index) => {
+                const userAnswer = userAnswers[index] || '';
+                const isCorrect = compareAnswers(q, userAnswer);
+                
+                if (isCorrect) {
+                    correctCount++;
+                } else {
+                    wrongAnswers.push({
+                        question: q.text,
+                        userAnswer: userAnswer || 'لم يجب',
+                        correctAnswer: q.correct
+                    });
+                }
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('score').textContent = `${score}%`;
+
+            sendToDiscord(currentUser, currentCode, score, wrongAnswers);
+            
+            showMessage('success', 'انتهى الاختبار', `لقد حصلت على ${score}%. تم إرسال النتائج للمشرف.`);
+        }
+
+        function compareAnswers(q, userAnswer) {
+            if (q.type === 'multiple') {
+                return userAnswer === q.correct;
+            } else {
+                return userAnswer.toLowerCase().includes(q.correct.toLowerCase().substring(0, 20));
+            }
+        }
+
+        function sendToDiscord(username, code, score, wrongAnswers) {
+            let message = `**نتائج اختبار جديد**\n`;
+            message += `الاسم: ${username}\n`;
+            message += `الكود: ${code}\n`;
+            message += `النتيجة: ${score}%\n\n`;
+            
+            if (wrongAnswers.length > 0) {
+                message += `الأخطاء (${wrongAnswers.length}):\n`;
+                wrongAnswers.forEach((w, i) => {
+                    message += `\n${i+1}. ${w.question}\n`;
+                    message += `   إجابة المختبر: ${w.userAnswer}\n`;
+                    message += `   الإجابة الصحيحة: ${w.correctAnswer}\n`;
+                });
+            } else {
+                message += `لا توجد أخطاء - إجابة كاملة صحيحة`;
+            }
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: message })
+            }).catch(error => console.error('Error sending to Discord:', error));
+        }
+
+        function blockRestart() {
+            localStorage.setItem('quizTaken', 'true');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
